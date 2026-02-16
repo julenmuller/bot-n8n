@@ -1,0 +1,244 @@
+{
+  "name": "Telegram Weather Chatbot with City Lookup",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "8cc2e3fb-90c5-4992-b661-6d271b7d54f1",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        256,
+        400
+      ],
+      "webhookId": "6b3a6f68-625c-4db8-adb1-960bd6de0bcb",
+      "credentials": {
+        "telegramApi": {
+          "id": "WCuRjYsNR43ceJr5",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "queue",
+              "value": "={{ $json.message.text.trim().toLowerCase() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e42a9aff-ae1e-4f6a-b71c-5081d3ef536a",
+      "name": "Prepare City Name",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.openweathermap.org/data/2.5/weather",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $('Prepare City Name').item.json.queue }}"
+            },
+            {
+              "name": "units",
+              "value": "metric"
+            },
+            {
+              "name": "lang",
+              "value": "pt_br"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e1ecc20a-ac78-4605-8559-99b94701280d",
+      "name": "Get Weather Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        704,
+        400
+      ],
+      "credentials": {
+        "openWeatherMapApi": {
+          "id": "ck754FON6jiR6RoF",
+          "name": "OpenWeatherMap account"
+        },
+        "httpHeaderAuth": {
+          "id": "42NMn2xwO24hGUv7",
+          "name": "Chave OpenWeather"
+        },
+        "httpQueryAuth": {
+          "id": "H4d2PlKKIq9Fy48B",
+          "name": "Query Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $('Get Weather Data').item.json.cod }}",
+              "rightValue": "200",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "7fe5608a-872f-4fc2-ac2a-ec6e7e4cdc86",
+      "name": "Check Response Status",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        928,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ '🌤️ A temperatura em ' + $('Get Weather Data').item.json.name + ' é de ' + Math.round($('Get Weather Data').item.json.main.temp) + '°C.' }}",
+        "additionalFields": {}
+      },
+      "id": "d08f479b-4381-421b-9962-6299ecfe70ea",
+      "name": "Send Weather Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1152,
+        496
+      ],
+      "webhookId": "1b8aae50-5dff-4006-9eac-05fa9c62d597",
+      "credentials": {
+        "telegramApi": {
+          "id": "WCuRjYsNR43ceJr5",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "❌ Cidade não encontrada. Use o formato Cidade,UF (ex.: São Paulo,SP).",
+        "additionalFields": {}
+      },
+      "id": "f23ec4cd-8f30-42ce-8aea-e5b28d19b601",
+      "name": "Send Error Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1152,
+        304
+      ],
+      "webhookId": "56a1a697-d43d-4c68-8867-2518199168eb",
+      "credentials": {
+        "telegramApi": {
+          "id": "WCuRjYsNR43ceJr5",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Prepare City Name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare City Name": {
+      "main": [
+        [
+          {
+            "node": "Get Weather Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Weather Data": {
+      "main": [
+        [
+          {
+            "node": "Check Response Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Response Status": {
+      "main": [
+        [
+          {
+            "node": "Send Weather Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Error Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1,
+    "executionOrder": "v0",
+    "binaryMode": "separate"
+  },
+  "versionId": "41346213-a6d6-4645-9e42-0cc8a48d28ac",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ee210c73706cc5667e994ef77d63ed0dc0482ecf01a1d640c383a29aecd25332"
+  },
+  "id": "xfHbwQ6A32U72i6v",
+  "tags": []
+}
