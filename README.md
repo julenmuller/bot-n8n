@@ -36,3 +36,7 @@ Envie uma mensagem para o seu bot no Telegram informando a cidade:
 ## ⚠️ Tratamento de Erros
 Se o usuário enviar uma cidade inexistente, o bot responderá:
 > ❌ Cidade não encontrada. Use o formato Cidade,UF (ex.: São Paulo,SP).
+
+
+<img width="1136" height="1600" alt="image" src="https://github.com/user-attachments/assets/c07bdab4-873b-45c8-9655-d56673766428" />
+
